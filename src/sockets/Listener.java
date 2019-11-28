@@ -25,7 +25,7 @@ public class Listener extends Thread{
 				Socket s = SS.accept();
 				PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
 				BufferedReader bf = new BufferedReader( new InputStreamReader(s.getInputStream()));
-				Sockets.sockets.put(Sockets.resolver.get(s.getInetAddress().getHostAddress()), s);
+				Sockets.sockets.put(Sockets.resolver.get(s.getInetAddress().getHostName()), s);
 				Sockets.readers.put(s, bf);
 				Sockets.writers.put(s, pw);
 				System.out.println("connected to someone");
