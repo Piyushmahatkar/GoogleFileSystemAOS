@@ -19,27 +19,27 @@ public class Sockets {
     static String path;
 
     Sockets() {
-        resolver.put("10.176.69.65", "S1");
-        resolver.put("10.176.69.66", "S2");
-        resolver.put("10.176.69.67", "S3");
-        resolver.put("10.176.69.68", "S4");
-        resolver.put("10.176.69.69", "S5");
+        resolver.put("10.176.69.32", "S1");
+        resolver.put("10.176.69.33", "S2");
+        resolver.put("10.176.69.34", "S3");
+        resolver.put("10.176.69.35", "S4");
+        resolver.put("10.176.69.36", "S5");
 
-        resolver.put("10.176.69.70", "C1");
-        resolver.put("10.176.69.71", "C2");
+        resolver.put("10.176.69.37", "C1");
+        resolver.put("10.176.69.38", "C2");
 
-        resolver.put("10.176.69.72", "M");
+        resolver.put("10.176.69.40", "M");
 
-        IDToIPResolver.put("S1", "10.176.69.65"); // server 1: DC31
-        IDToIPResolver.put("S2", "10.176.69.66"); // server 2: DC32
-        IDToIPResolver.put("S3", "10.176.69.67"); // server 3: DC33
-        IDToIPResolver.put("S4", "10.176.69.68"); // server 4: DC34
-        IDToIPResolver.put("S5", "10.176.69.69"); // server 5: DC35
+        IDToIPResolver.put("S1", "10.176.69.32"); // server 1: DC31
+        IDToIPResolver.put("S2", "10.176.69.33"); // server 2: DC32
+        IDToIPResolver.put("S3", "10.176.69.34"); // server 3: DC33
+        IDToIPResolver.put("S4", "10.176.69.35"); // server 4: DC34
+        IDToIPResolver.put("S5", "10.176.69.36"); // server 5: DC35
 
-        IDToIPResolver.put("C1", "10.176.69.70"); // client 1: DC36
-        IDToIPResolver.put("C2", "10.176.69.71"); // client 2: DC37
+        IDToIPResolver.put("C1", "10.176.69.37"); // client 1: DC36
+        IDToIPResolver.put("C2", "10.176.69.38"); // client 2: DC37
 
-        IDToIPResolver.put("M", "10.176.69.72"); // metadata server M: DC38
+        IDToIPResolver.put("M", "10.176.69.40"); // metadata server M: DC38
     }
 
     public static void main(String[] args) throws Throwable {
@@ -53,7 +53,6 @@ public class Sockets {
             Scanner input = new Scanner(System.in);
             String[] string = input.nextLine().split(" ");
             while (!string[0].equals("exit")) {
-
                 if (string[0].equals("connect")) {
                     List<String> nodeList = new ArrayList<>();
                     nodeList.add("S1");
@@ -87,54 +86,57 @@ public class Sockets {
 
             Scanner input = new Scanner(System.in);
             String[] string = input.nextLine().split(" ");
-            List<String> nodeList = new ArrayList<>();
-            nodeList.add("S1");
-            nodeList.add("S2");
-            nodeList.add("S3");
-            nodeList.add("S4");
-            nodeList.add("S5");
-            nodeList.add("M");
-            for (String node : nodeList) {
-                if (!node.equals(ID))
-                    connectNode(IDToIPResolver.get(node));
-            }
             while (!string[0].equals("exit")) {
-                string = input.nextLine().split(" ");
+                if(string[0].equals("connect")) {
+                    List<String> nodeList = new ArrayList<>();
+                    nodeList.add("S1");
+                    nodeList.add("S2");
+                    nodeList.add("S3");
+                    nodeList.add("S4");
+                    nodeList.add("S5");
+                    nodeList.add("M");
+                    for (String node : nodeList) {
+                        if (!node.equals(ID))
+                            connectNode(IDToIPResolver.get(node));
+                    }
+                }
                 // string format : <command> <node id> <data>
-                if (string[0].equals("send")) {
+                else if (string[0].equals("send")) {
                     // TODO: modify server code here
                     sendToFileServer(string[1], string[2]);
                 }
+                string = input.nextLine().split(" ");
             }
 
             System.exit(0);
         } else {
             ServerSocket SS = new ServerSocket(5000);
-            Listener listen = new Listener(SS);
-
+            Listener listener = new Listener(SS);
             Scanner input = new Scanner(System.in);
+            //TODO: code for meta server goes here
+            // this code might not be necessary
+            // string format : <command> <node id> <data>
             String[] string = input.nextLine().split(" ");
             while (!string[0].equals("exit")) {
-                List<String> nodeList = new ArrayList<>();
-                nodeList.add("S1");
-                nodeList.add("S2");
-                nodeList.add("S3");
-                nodeList.add("S4");
-                nodeList.add("S5");
-                for (String node : nodeList) {
-                    if (!node.equals(ID))
-                        connectNode(IDToIPResolver.get(node));
+                if(string[0].equals("connect")) {
+                    List<String> nodeList = new ArrayList<>();
+                    nodeList.add("S1");
+                    nodeList.add("S2");
+                    nodeList.add("S3");
+                    nodeList.add("S4");
+                    nodeList.add("S5");
+                    for (String node : nodeList) {
+                        if (!node.equals(ID))
+                            connectNode(IDToIPResolver.get(node));
+                    }
                 }
-                //TODO: code for meta server goes here
-                // this code might not be necessary
-                // string format : <command> <node id> <data>
                 if (string[0].equals("send")) {
                     // TODO: modify metadata server code here
                 }
+                string = input.nextLine().split(" ");
             }
             System.exit(0);
         }
-
     }
 
     public static void connectNode(String serverAddress) throws IOException {

@@ -28,7 +28,7 @@ public class Listener extends Thread{
 				Sockets.sockets.put(Sockets.resolver.get(s.getInetAddress().getHostAddress()), s);
 				Sockets.readers.put(s, bf);
 				Sockets.writers.put(s, pw);
-				System.out.println("connected to :" + s.getInetAddress().getHostAddress());
+				System.out.println("connected to someone");
 				MessageHandler MH = new MessageHandler(bf,pw);
 			} catch (IOException e) {
 			// 	TODO Auto-generated catch block
