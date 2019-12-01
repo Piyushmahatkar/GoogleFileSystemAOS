@@ -15,7 +15,7 @@ public class Sockets {
     static volatile Map<Socket, BufferedReader> readers = new HashMap<Socket, BufferedReader>();
     static volatile Map<Socket, PrintWriter> writers = new HashMap<Socket, PrintWriter>();
     static volatile Map<String, String> IDToIPResolver = new HashMap<>(); //id,ip
-    static int ID;
+    static String ID;
     static String path;
 
     Sockets() { }
@@ -44,6 +44,12 @@ public class Sockets {
                 }
 
                 // todo: client operations to define here on, below is old code
+                else if(string[0].equals("create")) {
+                    String filename = string[1];   // this has the filename
+                    PrintWriter pw = writers.get(sockets.get("M"));
+                    pw.println(string[0] + filename);
+                    pw.flush();
+                }
                 else {
                     String out = string[0];
                     PrintWriter pw = writers.get(sockets.get(out));
@@ -81,9 +87,12 @@ public class Sockets {
                     }
                 }
                 // string format : <command> <node id> <data>
-                else if (string[0].equals("send")) {
-                    // TODO: modify server code here
-                    sendToFileServer(string[1], string[2]);
+                else {
+                    // file server code
+                    String out = string[0];
+                    PrintWriter pw = writers.get(sockets.get(out));
+                    pw.println(string[1]);
+                    pw.flush();
                 }
                 string = input.nextLine().split(" ");
             }
@@ -110,8 +119,12 @@ public class Sockets {
                             connectNode(IDToIPResolver.get(node));
                     }
                 }
-                if (string[0].equals("send")) {
-                    // TODO: modify metadata server code here
+                else {
+                    // meta server code
+                    String out = string[0];
+                    PrintWriter pw = writers.get(sockets.get(out));
+                    pw.println(string[1]);
+                    pw.flush();
                 }
                 string = input.nextLine().split(" ");
             }
