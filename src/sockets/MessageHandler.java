@@ -86,10 +86,13 @@ public class MessageHandler extends Thread{
 	}
 
 	public static ArrayList<Integer> generate3Random() {
-		Random random = new Random();
-		ArrayList list = new ArrayList<Integer>(3);
-		while(list.size()< 3) {
-			list.add(random.nextInt(5));
+		Set<Integer> unique = new HashSet<>();
+		ArrayList<Integer> list = new ArrayList<Integer>(3);
+		while(unique.size() < 3) {
+			unique.add((int)(5.0 * Math.random())+1);
+		}
+		for(Integer i: unique) {
+			list.add(i);
 		}
 		return list;
 	}
