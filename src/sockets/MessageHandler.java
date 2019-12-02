@@ -41,6 +41,7 @@ public class MessageHandler extends Thread{
 				else if(message.split(" ")[0].equals("create")) { //intended for meta server
 					// code for duplicate filenames
 					ArrayList<Integer> serversList = generate3Random();
+					System.out.println(serversList);
 					for(int i = 0; i < 3 ; i++) {
 						PrintWriter pw = writers.get(sockets.get("S"+serversList.get(i)));
 						pw.println(message+"_1"); // first chunk = create <message> <filename_1>

@@ -45,9 +45,10 @@ public class Sockets {
 
                 // todo: client operations to define here on, below is old code
                 else if(string[0].equals("create")) {
-                    String filename = string[1];   // this has the filename
+                    String data = string[1];
+                    String fileName = string[2];// this has the filename
                     PrintWriter pw = writers.get(sockets.get("M"));
-                    pw.println(string[0] + filename);
+                    pw.println(string[0] +" "+ data + " " + fileName);
                     pw.flush();
                 }
                 else {
