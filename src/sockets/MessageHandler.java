@@ -43,13 +43,16 @@ public class MessageHandler extends Thread{
 					ArrayList<Integer> serversList = generate3Random();
 					System.out.println(serversList);
 					for(int i = 0; i < 3 ; i++) {
-						PrintWriter pw = writers.get(sockets.get("S"+serversList.get(i)));
+						pw = writers.get(sockets.get("S"+serversList.get(i)));
 						pw.println(message+"_1"); // first chunk = create <message> <filename_1>
 						pw.flush();
+						System.out.println("sending create request to S"+serversList.get(i));
+//						Thread.sleep(2000);
 					}
 				}
 				else if (message.split(" ")[0].equals("success")) { // intended for meta server from fileserver
 					// : success " + message.split(" ")[1] + " " + ID +"" + data.length)
+					System.out.println("Recieved Success Message :" + message);
 					if (successfulCreations.containsKey(message.split(" ")[1])) {
 						ArrayList<String> tempServers = successfulCreations.get(message.split(" ")[1]);
 						tempServers.add(message.split(" ")[2]);
@@ -78,9 +81,9 @@ public class MessageHandler extends Thread{
 			// 6. receive heartbeat (from fileserver to meta server)
 			// 7. append Data to a file (request from client to meta)
 			// 8. append data to chunk (request from client to fileserver)
-			System.out.println(message);
+//			System.out.println(message);
 		}
-		catch (IOException ex) {
+		catch (IOException  ex) {
 			ex.printStackTrace();
 		}
 	}

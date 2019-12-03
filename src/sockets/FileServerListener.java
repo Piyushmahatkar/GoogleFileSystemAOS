@@ -26,7 +26,7 @@ public class FileServerListener extends Thread{
                 Sockets.readers.put(s, bf);
                 Sockets.writers.put(s, pw);
                 System.out.println("someone connected to this FileServer!");
-                FileServerWriter fileServerWriter = new FileServerWriter(bf);
+                FileServerWriter fileServerWriter = new FileServerWriter(bf, pw);
             } catch (IOException e) {
                 // 	TODO Auto-generated catch block
                 e.printStackTrace();

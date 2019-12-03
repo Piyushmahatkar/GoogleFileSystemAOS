@@ -24,7 +24,7 @@ public class Sockets {
         initializeSockets();
         if (args[0].equals("client")) {
 
-            ServerSocket SS = new ServerSocket(5000);
+            ServerSocket SS = new ServerSocket(9001);
             Listener listen = new Listener(SS);
 
             Scanner input = new Scanner(System.in);
@@ -48,7 +48,7 @@ public class Sockets {
                     String data = string[1];
                     String fileName = string[2];// this has the filename
                     PrintWriter pw = writers.get(sockets.get("M"));
-                    pw.println(string[0] +" "+ data + " " + fileName);
+                    pw.println(string[0] +" "+ fileName + " " + data);
                     pw.flush();
                 }
                 else {
@@ -68,7 +68,7 @@ public class Sockets {
             System.out.println(InetAddress.getLocalHost().getHostName());
             System.out.println(ID);
             path = "./" + ID;
-            ServerSocket SS = new ServerSocket(5000);
+            ServerSocket SS = new ServerSocket(9001);
             FileServerListener fileServerListener = new FileServerListener(SS);
 
             Scanner input = new Scanner(System.in);
@@ -100,7 +100,7 @@ public class Sockets {
 
             System.exit(0);
         } else {
-            ServerSocket SS = new ServerSocket(5000);
+            ServerSocket SS = new ServerSocket(9001);
             Listener listener = new Listener(SS);
             Scanner input = new Scanner(System.in);
             //TODO: code for meta server goes here
@@ -134,7 +134,7 @@ public class Sockets {
     }
 
     public static void connectNode(String serverAddress) throws IOException {
-        int serverPort = 5000;
+        int serverPort = 9001;
         if (!sockets.containsKey(resolver.get(serverAddress))) {
             Socket s = new Socket(serverAddress, serverPort);
             PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
@@ -142,11 +142,19 @@ public class Sockets {
             sockets.put(resolver.get(s.getInetAddress().getHostName()), s);
             readers.put(s, bf);
             writers.put(s, pw);
+            if(resolver.get(serverAddress).equals('M')){
+                MessageHandler MH = new MessageHandler(
+                        readers.get(sockets.get(resolver.get(serverAddress))),
+                        writers.get(sockets.get(resolver.get(serverAddress)))
+                );
+            } else {
+                FileServerWriter fileServerWriter = new FileServerWriter(
+                        readers.get(sockets.get(resolver.get(serverAddress))),
+                        writers.get(sockets.get(resolver.get(serverAddress)))
+                );
+
+            }
         }
-        MessageHandler MH = new MessageHandler(
-                readers.get(sockets.get(resolver.get(serverAddress))),
-                writers.get(sockets.get(resolver.get(serverAddress)))
-        );
     }
 
     /**

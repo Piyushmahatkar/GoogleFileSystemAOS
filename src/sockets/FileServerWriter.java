@@ -13,11 +13,14 @@ import static sockets.Sockets.*;
 class FileServerWriter extends Thread{
 
     BufferedReader br;
+    PrintWriter pw;
 
-    public FileServerWriter(BufferedReader br){
+    public FileServerWriter(BufferedReader br, PrintWriter pw){
         super();
         start();
         this.br = br;
+        this.pw = pw;
+
     }
 
     public void run(){
@@ -28,6 +31,7 @@ class FileServerWriter extends Thread{
                 if(message.split(" ")[0].equals("exit"))
                     break;
                 else if(message.split(" ")[0].equals("create") ) { // first chunk creation
+                    System.out.println("File Creation Started");
                     String path = "./"
                             + "aos/project3"
                             + File.separator
@@ -39,7 +43,9 @@ class FileServerWriter extends Thread{
                     f.createNewFile();
                     String data = manageSize(message.split(" ")[1]);
                     writeUsingFiles(data, path);
-                    PrintWriter pw = writers.get(sockets.get("M"));
+//                    Thread.sleep(1000);
+                    System.out.println("File Creation Successful");
+                    pw = writers.get(sockets.get("M"));
                     pw.println("success " + message.split(" ")[2] + " " + ID + " " + data.length()); // first chunk
                     pw.flush();
                 }
