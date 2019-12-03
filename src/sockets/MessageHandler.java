@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
-import static sockets.Sockets.writers;
-import static sockets.Sockets.sockets;
+import static sockets.Sockets.*;
 
 public class MessageHandler extends Thread{
 	
@@ -29,14 +28,11 @@ public class MessageHandler extends Thread{
 	}
 	public void run(){
 		String message = null;
-		Map<String, ArrayList<String>> successfulCreations = new HashMap<>();
-		Map<String, String> chunkLocator = new HashMap<>(); // filename, latest_chunk
-		Map<String, ArrayList<String>> serverLocator = new HashMap<>(); // chunkname , list of servers
 
 		// chunk, <filename, list<servers>, version,  >
 		try {
 			while((message = br.readLine()) != null){//message = "<create> <message> <filename>"
-				if(message.split(" ")[0].equals("exit"))
+				if (message.split(" ")[0].equals("exit"))
 					break;
 				else if(message.split(" ")[0].equals("create")) { //intended for meta server
 					// code for duplicate filenames
@@ -56,9 +52,9 @@ public class MessageHandler extends Thread{
 					if (successfulCreations.containsKey(message.split(" ")[1])) {
 						ArrayList<String> tempServers = successfulCreations.get(message.split(" ")[1]);
 						tempServers.add(message.split(" ")[2]);
-						successfulCreations.put(
-								message.split(" ")[1], tempServers);
-						if(successfulCreations.get(message.split(" ")[1]).size()==3) { // all 3 servers requests were received
+                        successfulCreations.put(message.split(" ")[1], tempServers);
+
+						if (successfulCreations.get(message.split(" ")[1]).size() == 3) { // all 3 servers requests were received
 							chunkLocator.put(message.split(" ")[1].split("_")[0], message.split(" ")[1]);
 							serverLocator.put(message.split(" ")[2], successfulCreations.get(message.split(" ")[1]));
 							System.out.println("3 ack received for chunk : " + message.split(" ")[1]);
@@ -69,8 +65,7 @@ public class MessageHandler extends Thread{
 						ArrayList<String> tempServers = new ArrayList<>();
 						tempServers.add(message.split(" ")[2]);
 						successfulCreations.put(message.split(" ")[1], tempServers);
-					}
-
+                    }
 				}
 			}
 			// 1. create new file request (this is the request received by client to metadata server)

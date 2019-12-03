@@ -15,8 +15,12 @@ public class Sockets {
     static volatile Map<Socket, BufferedReader> readers = new HashMap<Socket, BufferedReader>();
     static volatile Map<Socket, PrintWriter> writers = new HashMap<Socket, PrintWriter>();
     static volatile Map<String, String> IDToIPResolver = new HashMap<>(); //id,ip
+    static volatile Map<String, ArrayList<String>> successfulCreations = new HashMap<>();  // chunk , servers_list_hosting_it
+    static volatile Map<String, String> chunkLocator = new HashMap<>(); // filename, latest_chunk
+    static volatile Map<String, ArrayList<String>> serverLocator = new HashMap<>(); // filename , list of servers
     static String ID;
     static String path;
+    static int port;
 
     Sockets() { }
     public static void main(String[] args) throws Throwable {
@@ -24,7 +28,7 @@ public class Sockets {
         initializeSockets();
         if (args[0].equals("client")) {
 
-            ServerSocket SS = new ServerSocket(9001);
+            ServerSocket SS = new ServerSocket(port);
             Listener listen = new Listener(SS);
 
             Scanner input = new Scanner(System.in);
@@ -68,7 +72,7 @@ public class Sockets {
             System.out.println(InetAddress.getLocalHost().getHostName());
             System.out.println(ID);
             path = "./" + ID;
-            ServerSocket SS = new ServerSocket(9001);
+            ServerSocket SS = new ServerSocket(port);
             FileServerListener fileServerListener = new FileServerListener(SS);
 
             Scanner input = new Scanner(System.in);
@@ -100,7 +104,7 @@ public class Sockets {
 
             System.exit(0);
         } else {
-            ServerSocket SS = new ServerSocket(9001);
+            ServerSocket SS = new ServerSocket(port);
             Listener listener = new Listener(SS);
             Scanner input = new Scanner(System.in);
             //TODO: code for meta server goes here
@@ -134,7 +138,7 @@ public class Sockets {
     }
 
     public static void connectNode(String serverAddress) throws IOException {
-        int serverPort = 9001;
+        int serverPort = port;
         if (!sockets.containsKey(resolver.get(serverAddress))) {
             Socket s = new Socket(serverAddress, serverPort);
             PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
@@ -174,10 +178,11 @@ public class Sockets {
     }
 
     public static void initializeSockets() {
+        port = 5000;
         resolver.put("dc01.utdallas.edu", "S1");
         resolver.put("dc02.utdallas.edu", "S2");
         resolver.put("dc03.utdallas.edu", "S3");
-        resolver.put("dc04.utdallas.edu", "S4");
+        resolver.put("dc09.utdallas.edu", "S4");
         resolver.put("dc05.utdallas.edu", "S5");
 
         resolver.put("dc06.utdallas.edu", "C1");
@@ -188,7 +193,7 @@ public class Sockets {
         IDToIPResolver.put("S1", "dc01.utdallas.edu"); // server 1: DC01
         IDToIPResolver.put("S2", "dc02.utdallas.edu"); // server 2: DC02
         IDToIPResolver.put("S3", "dc03.utdallas.edu"); // server 3: DC03
-        IDToIPResolver.put("S4", "dc04.utdallas.edu"); // server 4: DC04
+        IDToIPResolver.put("S4", "dc09.utdallas.edu"); // server 4: DC04
         IDToIPResolver.put("S5", "dc05.utdallas.edu"); // server 5: DC05
 
         IDToIPResolver.put("C1", "dc06.utdallas.edu"); // client 1: DC06
