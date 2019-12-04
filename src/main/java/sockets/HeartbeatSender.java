@@ -23,12 +23,14 @@ public class HeartbeatSender extends Thread {
 
     PrintWriter pw;
     Socket s;
+
     public HeartbeatSender(){
         super();
         start();
     }
 
     public void run(){
+
         while(true) {
             try {
                 Thread.sleep(5 * 1000); // 5 seconds
@@ -46,29 +48,25 @@ public class HeartbeatSender extends Thread {
 
 //                if(arr[index].isFile())
 //                    System.out.println(arr[index].getName());
-                ArrayList<ChunkDetails> listOfFiles = new ArrayList<>();
-                if(listOfFiles != null){
-                    for(File filepath: arr ) {
+                ArrayList<ChunkDetails> listOfFiles =  new ArrayList<>();
+                if(arr != null) {
+                    for (File filepath : arr) {
                         Path p = Paths.get(filepath.getAbsolutePath());
                         BasicFileAttributes view = Files.getFileAttributeView(p, BasicFileAttributeView.class).readAttributes();
                         FileTime fileTime = view.creationTime();
-                        listOfFiles.add(new ChunkDetails(filepath , fileTime.toMillis()));
+                        listOfFiles.add(new ChunkDetails(filepath, fileTime.toMillis()));
                     }
-                    MetaDataHeartBeat metaDataHeartBeat = new MetaDataHeartBeat(
-                            resolver.get(InetAddress.getLocalHost().getHostName()),
-                            listOfFiles,
-                            System.currentTimeMillis()
-                    );
-                    // send this object to Metadata
-                    Gson gson = new Gson();
-                    String jsonInString = gson.toJson(metaDataHeartBeat);
-                    pw.println("Heartbeat " + jsonInString);
-                    pw.flush();
                 }
-                else
-                    pw.println("Heartbeat  ");
+                MetaDataHeartBeat metaDataHeartBeat = new MetaDataHeartBeat(
+                        resolver.get(InetAddress.getLocalHost().getHostName()),
+                        listOfFiles,
+                        System.currentTimeMillis()
+                );
+                // send this object to Metadata
+                Gson gson = new Gson();
+                String jsonInString = gson.toJson(metaDataHeartBeat);
+                pw.println("Heartbeat " + jsonInString);
                 pw.flush();
-
             } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
             }

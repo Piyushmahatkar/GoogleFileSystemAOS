@@ -50,9 +50,10 @@ public class MessageHandler extends Thread{
 				else if (message.split(" ")[0].equals("Heartbeat")) {
                     System.out.println("Recieved Heartbeat Message :" + message);
                     Gson gson = new Gson();
-                    MetaDataHeartBeat metaDataHeartBeat = gson.fromJson( message.split(" ")[1], MetaDataHeartBeat.class);
+					MetaDataHeartBeat metaDataHeartBeat = gson.fromJson( message.split(" ")[1], MetaDataHeartBeat.class);
 					System.out.println("metadataobject is : " + metaDataHeartBeat);
-//					metaDataHeartBeat.
+					lastServerBeat.set(Character.getNumericValue(metaDataHeartBeat.serverName.charAt(1)-1), metaDataHeartBeat.timestamp);
+					updateServerStatuses();
                 }
 				else if (message.split(" ")[0].equals("success")) { // intended for meta server from fileserver
 					// : success " + message.split(" ")[1] + " " + ID +"" + data.length)
@@ -101,5 +102,16 @@ public class MessageHandler extends Thread{
 			list.add(i);
 		}
 		return list;
+	}
+	public static void updateServerStatuses(){
+		for (int i=0;i<lastServerBeat.size();i++) {
+			if(System.currentTimeMillis() - lastServerBeat.get(i) > 15000 && !downServers.contains(i)) {
+				downServers.add(i);
+			}
+			else if(System.currentTimeMillis() - lastServerBeat.get(i) < 15000 && downServers.contains(i)) {
+				downServers.remove(new Integer(i));
+			}
+		}
+		System.out.println("DownServers: " + downServers);
 	}
 }

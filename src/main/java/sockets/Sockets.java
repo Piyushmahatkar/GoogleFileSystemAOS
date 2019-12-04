@@ -18,6 +18,9 @@ public class Sockets {
     static volatile Map<String, ArrayList<String>> successfulCreations = new HashMap<>();  // chunk , servers_list_hosting_it
     static volatile Map<String, String> chunkLocator = new HashMap<>(); // filename, latest_chunk
     static volatile Map<String, ArrayList<String>> serverLocator = new HashMap<>(); // filename , list of servers
+    static volatile ArrayList<Long> lastServerBeat = new ArrayList<>(5);
+    static volatile ArrayList<Integer> downServers = new ArrayList<>(5);
+
     static String ID;
     static String path;
     static int port;
@@ -107,7 +110,9 @@ public class Sockets {
         } else {
             ServerSocket SS = new ServerSocket(port);
             Listener listener = new Listener(SS);
-
+            for(int i=0;i<5;i++) {
+                lastServerBeat.add(System.currentTimeMillis());
+            }
             Scanner input = new Scanner(System.in);
             //TODO: code for meta server goes here
             // this code might not be necessary
