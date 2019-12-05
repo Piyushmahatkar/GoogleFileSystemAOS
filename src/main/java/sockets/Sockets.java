@@ -49,13 +49,26 @@ public class Sockets {
                         connectNode(IDToIPResolver.get(node));
                     }
                 }
-
-                // todo: client operations to define here on, below is old code
                 else if(string[0].equals("create")) {
                     String data = string[1];
                     String fileName = string[2];// this has the filename
                     PrintWriter pw = writers.get(sockets.get("M"));
                     pw.println(string[0] +" "+ fileName + " " + data);
+                    pw.flush();
+                }
+                else if (string[0].equals("read")) {
+                    String fileName = string[1];
+                    String offset = string[2];// this has the filename
+                    String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
+                    PrintWriter pw = writers.get(sockets.get("M"));
+                    pw.println(string[0] +" "+ fileName + " " + offset + " " + currentHostId);
+                    pw.flush();
+                }else if (string[0].equals("append")) {
+                    String fileName = string[1];
+                    String dataSize = string[2];// this has the filename
+                    String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
+                    PrintWriter pw = writers.get(sockets.get("M"));
+                    pw.println(string[0] +" "+ fileName + " " + dataSize + " " + currentHostId);
                     pw.flush();
                 }
                 else {
@@ -89,6 +102,8 @@ public class Sockets {
                         nodeList.add("S"+i);
                     }
                     nodeList.add("M");
+//                    nodeList.add("C1");
+//                    nodeList.add("C2");
                     for (String node : nodeList) {
                             System.out.println(node);
                             connectNode(IDToIPResolver.get(node));
@@ -121,11 +136,8 @@ public class Sockets {
             while (!string[0].equals("exit")) {
                 if(string[0].equals("connect")) {
                     List<String> nodeList = new ArrayList<>();
-                    nodeList.add("S1");
-                    nodeList.add("S2");
-                    nodeList.add("S3");
-                    nodeList.add("S4");
-                    nodeList.add("S5");
+                    nodeList.add("C1");
+                    nodeList.add("C2");
                     for (String node : nodeList) {
                         if (!node.equals(ID))
                             connectNode(IDToIPResolver.get(node));
@@ -153,12 +165,21 @@ public class Sockets {
             sockets.put(resolver.get(s.getInetAddress().getHostName()), s);
             readers.put(s, bf);
             writers.put(s, pw);
-            if(resolver.get(serverAddress).equals('M')){
+            if(resolver.get(serverAddress).equals('M') || resolver.get(serverAddress).equals("C1") || resolver.get(serverAddress).equals("C2")){
                 MessageHandler MH = new MessageHandler(
                         readers.get(sockets.get(resolver.get(serverAddress))),
                         writers.get(sockets.get(resolver.get(serverAddress)))
                 );
-            } else {
+            }
+//
+//            else if (resolver.get(serverAddress).equals("C1") || resolver.get(serverAddress).equals("C2")) {
+//                ClientRequestHandler clientRequestHandler = new ClientRequestHandler(
+//                        readers.get(sockets.get(resolver.get(serverAddress))),
+//                        writers.get(sockets.get(resolver.get(serverAddress)))
+//                );
+//
+//            }
+            else {
                 FileServerWriter fileServerWriter = new FileServerWriter(
                         readers.get(sockets.get(resolver.get(serverAddress))),
                         writers.get(sockets.get(resolver.get(serverAddress)))
@@ -185,7 +206,7 @@ public class Sockets {
     }
 
     public static void initializeSockets() {
-        port = 5000;
+        port = 9021;
         resolver.put("dc01.utdallas.edu", "S1");
         resolver.put("dc02.utdallas.edu", "S2");
         resolver.put("dc03.utdallas.edu", "S3");

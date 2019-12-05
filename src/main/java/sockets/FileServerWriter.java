@@ -49,6 +49,25 @@ class FileServerWriter extends Thread{
                     pw.flush();
                 }
                 // write to file.txt on server
+                else if(message.split(" ")[0].equals("read") ) { // first chunk creation
+                    System.out.println("File reading Started");
+                    String requestingClient =  message.split(" ")[3];
+                    String path = "./"
+                            + "aos/project3"
+                            + File.separator
+                            + ID
+                            + File.separator
+                            + message.split(" ")[1];
+                    File file = new File(path);
+                    BufferedReader br = new BufferedReader(new FileReader(file));
+                    br.skip(Integer.parseInt(message.split(" ")[2])-1); // chars to skip
+                    String data = br.readLine();
+                    System.out.println("Read Data: " + data);
+                    pw = writers.get(sockets.get(requestingClient));
+                    pw.println("ReadData " + data);
+                    pw.flush();
+                }
+
             }
 
             br.close();

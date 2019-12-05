@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.util.*;
 
 import static sockets.Sockets.*;
@@ -38,10 +39,12 @@ public class MessageHandler extends Thread{
 					break;
 				else if(message.split(" ")[0].equals("create")) { //intended for meta server
 					// code for duplicate filenames
+					System.out.println(message);
 					ArrayList<Integer> serversList = generate3Random();
 					System.out.println(serversList);
 					for(int i = 0; i < 3 ; i++) {
 						pw = writers.get(sockets.get("S"+serversList.get(i)));
+						System.out.println(sockets.get("S"+serversList.get(i)));
 						pw.println(message+"_1"); // first chunk = create <message> <filename_1>
 						pw.flush();
 						System.out.println("sending create request to S"+serversList.get(i));
@@ -76,6 +79,103 @@ public class MessageHandler extends Thread{
 						successfulCreations.put(message.split(" ")[1], tempServers);
                     }
 				}
+				else if (message.split(" ")[0].equals("read")) {
+					System.out.println(message);
+					String fileName = message.split(" ")[1];
+					String offset = message.split(" ")[2];// this has the offset
+					String requestingClient = message.split(" ")[3];
+					int chunkId = Integer.parseInt(offset)/4096 + 1;
+					int chunkOffset = Integer.parseInt(offset)%4096;
+					String chunkName = fileName+ "_" + chunkId;
+					System.out.println("ChunkName "+ chunkName +" Server Selected: " + successfulCreations.get(chunkName));
+					if(successfulCreations.containsKey(chunkName)){
+						ArrayList<String> chunkServers = successfulCreations.get(chunkName);
+						//todo :validate server available or not
+						int index = new Random().nextInt(chunkServers.size());
+						String selectedServer = chunkServers.get(index);
+						pw = writers.get(sockets.get(requestingClient));
+						pw.println("canRead " + chunkName+ " " + chunkOffset + " " + selectedServer);
+						pw.flush();
+						System.out.println("canRead " + chunkName+ " " + chunkOffset + " " + selectedServer);
+					}
+				}
+				else if (message.split(" ")[0].equals("append")) {
+					System.out.println(message);
+					String fileName = message.split(" ")[1];
+					String dataSize = message.split(" ")[2];// this has the offset
+					String requestingClient = message.split(" ")[3];
+					//todo: verify if last chunk can accomodate the data or not
+					//if yes
+					String latestChunkName = chunkLocator.get(fileName);//latest chunk
+					if(successfulCreations.containsKey(latestChunkName)){
+						ArrayList<String> chunkServers = successfulCreations.get(latestChunkName);
+						//todo :validate server available or not
+						pw = writers.get(sockets.get(requestingClient));
+						pw.println("canAppend "
+								+ latestChunkName + " " +
+								dataSize + " "
+								+ chunkServers.get(0) + " "
+								+ chunkServers.get(1) + " "
+								+ chunkServers.get(2));
+						pw.flush();
+						System.out.println("canAppend " + latestChunkName+ " " + dataSize + " " + chunkServers);
+					// else
+					//append null to the old chunk
+					// create new chunk name and select new server list
+					}
+				}
+
+				// client incoming request
+				else if (message.split(" ")[0].equals("canRead")) {
+					System.out.println("Recieved server details for read");
+					String chunkName = message.split(" ")[1];
+					String offset = message.split(" ")[2];
+					String selectedServer = message.split(" ")[3];
+					String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
+					pw = writers.get(sockets.get(selectedServer));
+					pw.println("read "+ chunkName + " " + offset + " " + currentHostId);
+					pw.flush();
+					System.out.println("sending read request to "+selectedServer);
+				}
+				else if (message.split(" ")[0].equals("canAppend")) {
+					System.out.println("Recieved server list for append");
+					String latestChunkName = message.split(" ")[1];
+					String dataSize = message.split(" ")[2];
+					ArrayList<String> serversList = new ArrayList<String>();
+					serversList.add(message.split(" ")[3]);
+					serversList.add(message.split(" ")[4]);
+					serversList.add(message.split(" ")[5]);
+					// todo: implement 2 commit protocol
+					//send commit request
+					for(int i = 0; i < 3 ; i++) {
+						System.out.println("sending read request to "+serversList.get(i));
+						pw = writers.get(sockets.get(serversList.get(i)));
+						System.out.println(sockets.get(serversList.get(i)));
+						pw.println("commit"); //
+						pw.flush();
+						System.out.println("sending create request to "+serversList.get(i));
+					}
+					for(int i = 0; i < 3 ; i++) {
+						System.out.println("sending read request to "+serversList.get(i));
+						pw = writers.get(sockets.get(serversList.get(i)));
+						System.out.println(sockets.get(serversList.get(i)));
+						pw.println("commit"); //
+						pw.flush();
+						System.out.println("sending create request to "+serversList.get(i));
+					}
+//					String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
+//					pw = writers.get(sockets.get(selectedServer));
+//					pw.println("read "+ chunkName + " " + offset + " " + currentHostId);
+//					pw.flush();
+//					System.out.println("sending read request to "+selectedServer);
+				}
+				else if (message.split(" ")[0].equals("ReadSuccess")) {
+					System.out.println(message);
+				}
+				else if (message.split(" ")[0].equals("CreateSuccess")) {
+					System.out.println(message);
+				}
+				System.out.println(message);
 			}
 			// 1. create new file request (this is the request received by client to metadata server)
 			// 2. create new chunk request (this is the request received from metadataserver to fileserver)
