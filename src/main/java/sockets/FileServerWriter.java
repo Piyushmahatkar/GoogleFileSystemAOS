@@ -64,6 +64,38 @@ class FileServerWriter extends Thread{
                     pw = writers.get(sockets.get(requestingClient));
                     pw.println("ReadSuccess " + data);
                     pw.flush();
+
+                } else if(message.split(" ")[0].equals("SendRecoveryDataToServer")){
+                    // SendRecoveryDataToServer "+chunkName+" "+ recoveringServer
+                    // read current file from this server and send the content to other fileServer
+                    String path = "./"
+                            + "aos/project3"
+                            + File.separator
+                            + resolver.get(InetAddress.getLocalHost().getHostName())//ID
+                            + File.separator
+                            + message.split(" ")[1];
+                    File file = new File(path);
+                    BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                    String data = bufferedReader.readLine();
+                    PrintWriter pr = writers.get(sockets.get(message.split(" ")[2]));
+                    pr.println("recoveringFile "+message.split(" ")[1]+" "+data);
+                    pr.flush();
+
+                } else if(message.split(" ")[0].equals("recoveringFile")) {
+                    String path = "./"
+                            + "aos/project3"
+                            + File.separator
+                            + resolver.get(InetAddress.getLocalHost().getHostName())//ID
+                            + File.separator
+                            + message.split(" ")[1];
+                    File file = new File(path);
+                    if (file.exists() && file.isFile()) {
+                        file.delete();
+                    }
+                    file.createNewFile();
+                    writeUsingFiles(message.split(" ")[2], path);
+                } else {
+                    System.out.println(message);
                 }
                 //todo: Implement 2PHASE COMMIT PROTOCOL
                 else if(message.split(" ")[0].equals("append.") ) { // appending of chunk

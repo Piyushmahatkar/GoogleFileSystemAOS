@@ -184,15 +184,6 @@ public class MessageHandler extends Thread{
 				}
 //				System.out.println(message);
 			}
-			// 1. create new file request (this is the request received by client to metadata server)
-			// 2. create new chunk request (this is the request received from metadataserver to fileserver)
-			// 3. read a chunk (request from client to fileserver)
-			// 4. locate the chunk (function in metadata server)
-			// 5. send heartbeat (function in file server )
-			// 6. receive heartbeat (from fileserver to meta server)
-			// 7. append Data to a file (request from client to meta)
-			// 8. append data to chunk (request from client to fileserver)
-//			System.out.println(message);
 		}
 		catch (IOException  ex) {
 			ex.printStackTrace();
@@ -213,9 +204,34 @@ public class MessageHandler extends Thread{
 	public static void updateServerStatuses(){
 		for (int i=0;i<lastServerBeat.size();i++) {
 			if(System.currentTimeMillis() - lastServerBeat.get(i) > 15000 && !downServers.contains(i)) {
+				// server has gone down
 				downServers.add(i);
 			}
 			else if(System.currentTimeMillis() - lastServerBeat.get(i) < 15000 && downServers.contains(i)) {
+				// server is back online, recovery procedure starts.
+				for(String entry : successfulCreations.keySet()) { // has chunk vs servers mapping
+					if(successfulCreations.get(entry).contains("S"+i)) {
+						RecoveryInfo recoveryInfo = new RecoveryInfo();
+						recoveryInfo.recoveringServer = "S"+i;
+						recoveryInfo.chunkName = entry;
+						for(int j=0; j<successfulCreations.get(entry).size();j++) {
+							if(!successfulCreations.get(entry).get(i).equals("S"+i))
+								recoveryInfo.recoveringSources.add(successfulCreations.get(entry).get(i));
+						}
+						// get latest version
+						int latestVersion = chunkVersion.get(recoveryInfo.chunkName);
+						// check if cohort server is active
+						for (String source:recoveryInfo.recoveringSources) {
+							if(downServers.contains(source))
+								// send signal to cohort to send file content.
+								sendCopyRequestForThisChunk(recoveryInfo.recoveringServer, source, recoveryInfo.chunkName);
+
+						}
+
+					}
+				}
+
+//				successfulCreations.
 				downServers.remove(new Integer(i));
 			}
 		}
@@ -233,8 +249,7 @@ public class MessageHandler extends Thread{
 					];
 			chunkCreateOrUpdateTime.put(chunkName, metaDataHeartBeat.listOfChunks.get(i).fileSize);
 			if (successfulCreations.containsKey(chunkName)
-					&& !successfulCreations.get(chunkName).contains(metaDataHeartBeat.serverName)
- 			) {
+					&& !successfulCreations.get(chunkName).contains(metaDataHeartBeat.serverName)) {
 				ArrayList<String> tempServers = successfulCreations.get(chunkName);
 				tempServers.add(metaDataHeartBeat.serverName);
 				successfulCreations.put(chunkName, tempServers);
@@ -245,5 +260,10 @@ public class MessageHandler extends Thread{
 				successfulCreations.put(chunkName, tempServers);
 			}
 		}
+	}
+
+	public static void sendCopyRequestForThisChunk(String recoveringServer, String source, String chunkName) {
+		PrintWriter newpr = writers.get(sockets.get(source));
+		newpr.println("SendRecoveryDataToServer "+chunkName+" "+ recoveringServer);
 	}
 }
