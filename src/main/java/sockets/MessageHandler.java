@@ -31,13 +31,14 @@ public class MessageHandler extends Thread{
 	}
 	public void run(){
 		String message = null;
+		String clientHostId = null;
 
 		// chunk, <filename, list<servers>, version,  >
 		try {
 			while((message = br.readLine()) != null){//message = "<create> <message> <filename>"
 				if (message.split(" ")[0].equals("exit"))
 					break;
-				else if(message.split(" ")[0].equals("create")) { //intended for meta server
+				else if(message.split(" ")[0].equals("create")) {//intended for meta server
 					// code for duplicate filenames
 					System.out.println(message);
 					ArrayList<Integer> serversList = generate3Random();
@@ -61,6 +62,7 @@ public class MessageHandler extends Thread{
                 }
 				else if (message.split(" ")[0].equals("success")) { // intended for meta server from fileserver
 					// : success " + message.split(" ")[1] + " " + ID +"" + data.length)
+					clientHostId = message.split(" ")[3];
 					System.out.println("Recieved Success Message :" + message);
 					if (successfulCreations.containsKey(message.split(" ")[1])) {
 						ArrayList<String> tempServers = successfulCreations.get(message.split(" ")[1]);
@@ -70,8 +72,11 @@ public class MessageHandler extends Thread{
 						if (successfulCreations.get(message.split(" ")[1]).size() == 3) { // all 3 servers requests were received
 							chunkLocator.put(message.split(" ")[1].split("_")[0], message.split(" ")[1]);
 							serverLocator.put(message.split(" ")[2], successfulCreations.get(message.split(" ")[1]));
-							System.out.println("3 ack received for chunk : " + message.split(" ")[1]);
-							// TODO: send success to client
+							System.out.println("3 ack received for chunk : " + message.split(" ")[1]+"........."+clientHostId);
+							//send success to client
+							pw = writers.get(sockets.get(clientHostId));
+							pw.println("CreateSuccess");
+							pw.flush();
 						}
 					}
 					else {
@@ -84,7 +89,7 @@ public class MessageHandler extends Thread{
 					System.out.println(message);
 					String fileName = message.split(" ")[1];
 					String offset = message.split(" ")[2];// this has the offset
-					String requestingClient = message.split(" ")[3];
+					clientHostId = message.split(" ")[3];
 					int chunkId = Integer.parseInt(offset)/4096 + 1;
 					int chunkOffset = Integer.parseInt(offset)%4096;
 					String chunkName = fileName+ "_" + chunkId;
@@ -95,7 +100,7 @@ public class MessageHandler extends Thread{
 						//todo :validate server available or not
 						int index = new Random().nextInt(chunkServers.size());
 						String selectedServer = chunkServers.get(index);
-						pw = writers.get(sockets.get(requestingClient));
+						pw = writers.get(sockets.get(clientHostId));
 						pw.println("canRead " + chunkName+ " " + chunkOffset + " " + selectedServer);
 						pw.flush();
 						System.out.println("canRead " + chunkName+ " " + chunkOffset + " " + selectedServer);
@@ -105,14 +110,14 @@ public class MessageHandler extends Thread{
 					System.out.println(message);
 					String fileName = message.split(" ")[1];
 					String dataSize = message.split(" ")[2];// this has the offset
-					String requestingClient = message.split(" ")[3];
+					clientHostId = message.split(" ")[3];
 					//todo: verify if last chunk can accomodate the data or not
 					//if yes
 					String latestChunkName = chunkLocator.get(fileName);//latest chunk
 					if(successfulCreations.containsKey(latestChunkName)){
 						ArrayList<String> chunkServers = successfulCreations.get(latestChunkName);
 						//todo :validate server available or not
-						pw = writers.get(sockets.get(requestingClient));
+						pw = writers.get(sockets.get(clientHostId));
 						pw.println("canAppend "
 								+ latestChunkName + " " +
 								dataSize + " "
@@ -146,6 +151,8 @@ public class MessageHandler extends Thread{
 					System.out.println("Recieved server list for append");
 					String latestChunkName = message.split(" ")[1];
 					String dataSize = message.split(" ")[2];
+					String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
+					System.out.println(resolver.get(InetAddress.getLocalHost().getHostName()));
 					ArrayList<String> serversList = new ArrayList<String>();
 					serversList.add(message.split(" ")[3]);
 					serversList.add(message.split(" ")[4]);
@@ -153,20 +160,10 @@ public class MessageHandler extends Thread{
 					// todo: implement 2 commit protocol
 					//send commit request
 					for(int i = 0; i < 3 ; i++) {
-						System.out.println("sending read request to "+serversList.get(i));
 						pw = writers.get(sockets.get(serversList.get(i)));
-						System.out.println(sockets.get(serversList.get(i)));
-						pw.println("commit"); //
+						pw.println("append " + latestChunkName + " " + dataSize + " " + currentHostId); //
 						pw.flush();
-						System.out.println("sending create request to "+serversList.get(i));
-					}
-					for(int i = 0; i < 3 ; i++) {
-						System.out.println("sending read request to "+serversList.get(i));
-						pw = writers.get(sockets.get(serversList.get(i)));
-						System.out.println(sockets.get(serversList.get(i)));
-						pw.println("commit"); //
-						pw.flush();
-						System.out.println("sending create request to "+serversList.get(i));
+						System.out.println("sending Append request to "+serversList.get(i));
 					}
 //					String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
 //					pw = writers.get(sockets.get(selectedServer));
@@ -174,14 +171,18 @@ public class MessageHandler extends Thread{
 //					pw.flush();
 //					System.out.println("sending read request to "+selectedServer);
 				}
-				else if (message.split(" ")[0].equals("ReadSuccess")) {
-					System.out.println("client receiving data : ");
+				else if (message.split(" ")[0].equals("AppendAck")) {
 					System.out.println(message);
+					if(appendBuffer.size()==3){//will get the available server for the chunk
+						for(int i = 0; i < 3 ; i++) {
+							pw = writers.get(sockets.get(appendBuffer.get(i).serverId));
+							pw.println("commit" + i); //
+							pw.flush();
+							System.out.println("sending commit request to "+appendBuffer.get(i).serverId);
+						}
+					}
 				}
-				else if (message.split(" ")[0].equals("CreateSuccess")) {
-					System.out.println(message);
-				}
-				else System.out.println(message);
+//				System.out.println(message);
 			}
 			// 1. create new file request (this is the request received by client to metadata server)
 			// 2. create new chunk request (this is the request received from metadataserver to fileserver)
@@ -218,7 +219,7 @@ public class MessageHandler extends Thread{
 				downServers.remove(new Integer(i));
 			}
 		}
-		System.out.println("DownServers: " + downServers);
+//		System.out.println("DownServers: " + downServers);
 	}
 	public static void updateChunkMetaData(MetaDataHeartBeat metaDataHeartBeat) {
 		for (int i = 0; i < metaDataHeartBeat.listOfChunks.size(); i++) {

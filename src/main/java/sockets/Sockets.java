@@ -22,6 +22,7 @@ public class Sockets {
     static volatile ArrayList<Integer> downServers = new ArrayList<>(5);
     static volatile Map<String, Long> chunkCreateOrUpdateTime = new HashMap<>();
 
+    static volatile ArrayList<FileServerBuffer> appendBuffer= new ArrayList<>(3);
     static String ID;
     static String path;
     static int port;
@@ -34,7 +35,7 @@ public class Sockets {
 
             ServerSocket SS = new ServerSocket(port);
             Listener listen = new Listener(SS);
-
+            String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
             Scanner input = new Scanner(System.in);
             String[] string = input.nextLine().split(" ");
             while (!string[0].equals("exit")) {
@@ -51,16 +52,14 @@ public class Sockets {
                     }
                 }
                 else if(string[0].equals("create")) {
-                    String data = string[1];
-                    String fileName = string[2];// this has the filename
+                    String fileName = string[1];// this has the filename
                     PrintWriter pw = writers.get(sockets.get("M"));
-                    pw.println(string[0] +" "+ fileName + " " + data);
+                    pw.println(string[0] +" "+ currentHostId+" "+ fileName);
                     pw.flush();
                 }
                 else if (string[0].equals("read")) {
                     String fileName = string[1];
                     String offset = string[2];// this has the filename
-                    String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
                     PrintWriter pw = writers.get(sockets.get("M"));
                     pw.println(string[0] + " " + fileName + " " + offset + " " + currentHostId);
                     pw.flush();
@@ -68,7 +67,6 @@ public class Sockets {
                 else if (string[0].equals("append")) {
                     String fileName = string[1];
                     String dataSize = string[2];// this has the filename
-                    String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
                     PrintWriter pw = writers.get(sockets.get("M"));
                     pw.println(string[0] +" "+ fileName + " " + dataSize + " " + currentHostId);
                     pw.flush();
