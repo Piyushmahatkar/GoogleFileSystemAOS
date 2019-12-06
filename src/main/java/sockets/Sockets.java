@@ -21,6 +21,7 @@ public class Sockets {
     static volatile ArrayList<Long> lastServerBeat = new ArrayList<>(5);
     static volatile ArrayList<Integer> downServers = new ArrayList<>(5);
     static volatile Map<String, Long> chunkCreateOrUpdateTime = new HashMap<>();
+    static volatile Map<String, Integer> chunkVersion = new HashMap<>(); // chunk vs its latest version
 
     static volatile ArrayList<FileServerBuffer> appendBuffer= new ArrayList<>(3);
     static String ID;
