@@ -94,8 +94,6 @@ class FileServerWriter extends Thread{
                     }
                     file.createNewFile();
                     writeUsingFiles(message.split(" ")[2], path);
-                } else {
-                    System.out.println(message);
                 }
                 //todo: Implement 2PHASE COMMIT PROTOCOL
                 else if(message.split(" ")[0].equals("append.") ) { // appending of chunk
@@ -166,13 +164,20 @@ class FileServerWriter extends Thread{
                 else if (message.split(" ")[0].equals("AppendSuccess")) {
                     System.out.println(message);
                 }
-
+                else {
+                    System.out.println(message);
+                }
             }
             br.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+
+    private static void writeUsingFiles(String data, String path) throws IOException {
+        Path file = Paths.get(path);
+        Files.write(file, Collections.singleton(data), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
     }
 
     private static String manageSize(String data){
