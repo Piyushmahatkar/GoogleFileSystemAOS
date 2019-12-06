@@ -60,9 +60,16 @@ public class Sockets {
                 else if (string[0].equals("read")) {
                     String fileName = string[1];
                     String offset = string[2];// this has the filename
-                    PrintWriter pw = writers.get(sockets.get("M"));
-                    pw.println(string[0] + " " + fileName + " " + offset + " " + currentHostId);
-                    pw.flush();
+                    if(Integer.parseInt(offset) > 0) {
+                        PrintWriter pw = writers.get(sockets.get("M"));
+                        pw.println(string[0] + " " + fileName + " " + offset + " " + currentHostId);
+                        pw.flush();
+                    }else if (Integer.parseInt(offset) < 0 ){
+                        System.out.println("Invalid offset");
+                    }
+//                    else if(!chunkLocator.containsKey(fileName)){
+//                        System.out.println("File with name" + fileName + "does not exists.");
+//                    }
                 }
                 else if (string[0].equals("append")) {
                     String fileName = string[1];

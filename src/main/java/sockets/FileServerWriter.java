@@ -66,7 +66,7 @@ class FileServerWriter extends Thread{
                     pw.flush();
                 }
                 //todo: Implement 2PHASE COMMIT PROTOCOL
-                else if(message.split(" ")[0].equals("append") ) { // appending of chunk
+                else if(message.split(" ")[0].equals("append.") ) { // appending of chunk
                     System.out.println("Append Request Recieved");
                     int dataSize = Integer.parseInt(message.split(" ")[2]);
                     String requestingClient =  message.split(" ")[3];
@@ -86,22 +86,32 @@ class FileServerWriter extends Thread{
                     pw.println("AppendAck");
                     pw.flush();
                 }
-                else if (message.split(" ")[0].equals("commit")){
+                else if (message.split(" ")[0].equals("append")){
+                    System.out.println("Append Request Recieved");
+                    int dataSize = Integer.parseInt(message.split(" ")[2]);
+                    String requestingClient =  message.split(" ")[3];
+                    String path = "./"
+                            + "aos/project3"
+                            + File.separator
+                            + ID
+                            + File.separator
+                            + message.split(" ")[1];
+                    System.out.println("Commit Request Recieved");
                     System.out.println("File Appending Started");
-                    int index = Integer.parseInt(message.split(" ")[1]);
-                    int dataSize = appendBuffer.get(index).dataSize;
-                    String requestingClient =  appendBuffer.get(index).requestingClient;
-                    String path = appendBuffer.get(index).chunkPath;
+//                    int index = Integer.parseInt(message.split(" ")[1]);
+//                    int dataSize = appendBuffer.get(index).dataSize;
+//                    String requestingClient =  appendBuffer.get(index).requestingClient;
+//                    String path = appendBuffer.get(index).chunkPath;
                     File file = new File(path);
                     file.getParentFile().mkdirs();
                     file.createNewFile();
                     BufferedWriter writer = new BufferedWriter(new FileWriter(file,true));
                     writer.write(generateDataBySize(dataSize));
                     writer.close();
-                    createUpdateVersionFile(path, true);
+//                    createUpdateVersionFile(path, true);
                     System.out.println("Append Successful");
                     pw = writers.get(sockets.get(requestingClient));
-                    pw.println("AppendSuccess: " + appendBuffer.get(index).serverId);
+                    pw.println("AppendSuccess : " + ID);
                     pw.flush();
                 }
                 else if (message.split(" ")[0].equals("ReadSuccess")) {

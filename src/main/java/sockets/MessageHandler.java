@@ -52,10 +52,10 @@ public class MessageHandler extends Thread{
 					}
 				}
 				else if (message.split(" ")[0].equals("Heartbeat")) {
-                    //System.out.println("Recieved Heartbeat Message :" + message);
+                    System.out.println("Recieved Heartbeat Message :" + message);
                     Gson gson = new Gson();
 					MetaDataHeartBeat metaDataHeartBeat = gson.fromJson( message.split(" ")[1], MetaDataHeartBeat.class);
-					// System.out.println("metadataobject is : " + metaDataHeartBeat);
+					 System.out.println("metadataobject is : " + metaDataHeartBeat);
 					lastServerBeat.set(Character.getNumericValue(metaDataHeartBeat.serverName.charAt(1)-1), metaDataHeartBeat.timestamp);
 					updateServerStatuses();
 					updateChunkMetaData(metaDataHeartBeat);
