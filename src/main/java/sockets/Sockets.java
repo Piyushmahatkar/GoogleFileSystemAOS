@@ -20,6 +20,7 @@ public class Sockets {
     static volatile Map<String, ArrayList<String>> serverLocator = new HashMap<>(); // filename , list of servers
     static volatile ArrayList<Long> lastServerBeat = new ArrayList<>(5);
     static volatile ArrayList<Integer> downServers = new ArrayList<>(5);
+    static volatile Map<String, Long> chunkCreateOrUpdateTime = new HashMap<>();
 
     static String ID;
     static String path;
@@ -61,9 +62,10 @@ public class Sockets {
                     String offset = string[2];// this has the filename
                     String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
                     PrintWriter pw = writers.get(sockets.get("M"));
-                    pw.println(string[0] +" "+ fileName + " " + offset + " " + currentHostId);
+                    pw.println(string[0] + " " + fileName + " " + offset + " " + currentHostId);
                     pw.flush();
-                }else if (string[0].equals("append")) {
+                }
+                else if (string[0].equals("append")) {
                     String fileName = string[1];
                     String dataSize = string[2];// this has the filename
                     String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
@@ -206,7 +208,7 @@ public class Sockets {
     }
 
     public static void initializeSockets() {
-        port = 9021;
+        port = 5000;
         resolver.put("dc01.utdallas.edu", "S1");
         resolver.put("dc02.utdallas.edu", "S2");
         resolver.put("dc03.utdallas.edu", "S3");

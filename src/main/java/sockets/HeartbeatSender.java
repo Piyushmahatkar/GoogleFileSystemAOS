@@ -16,6 +16,7 @@ import java.nio.file.attribute.FileTime;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 
 import static sockets.Sockets.*;
 
@@ -48,13 +49,14 @@ public class HeartbeatSender extends Thread {
 
 //                if(arr[index].isFile())
 //                    System.out.println(arr[index].getName());
-                ArrayList<ChunkDetails> listOfFiles =  new ArrayList<>();
+                LinkedList<ChunkDetails> listOfFiles =  new LinkedList<>();
                 if(arr != null) {
                     for (File filepath : arr) {
                         Path p = Paths.get(filepath.getAbsolutePath());
                         BasicFileAttributes view = Files.getFileAttributeView(p, BasicFileAttributeView.class).readAttributes();
                         FileTime fileTime = view.creationTime();
-                        listOfFiles.add(new ChunkDetails(filepath, fileTime.toMillis()));
+                        Long fileSize = view.size();
+                        listOfFiles.add(new ChunkDetails(filepath, fileTime.toMillis(), fileSize));
                     }
                 }
                 MetaDataHeartBeat metaDataHeartBeat = new MetaDataHeartBeat(

@@ -51,12 +51,13 @@ public class MessageHandler extends Thread{
 					}
 				}
 				else if (message.split(" ")[0].equals("Heartbeat")) {
-                    System.out.println("Recieved Heartbeat Message :" + message);
+                    //System.out.println("Recieved Heartbeat Message :" + message);
                     Gson gson = new Gson();
 					MetaDataHeartBeat metaDataHeartBeat = gson.fromJson( message.split(" ")[1], MetaDataHeartBeat.class);
-					System.out.println("metadataobject is : " + metaDataHeartBeat);
+					// System.out.println("metadataobject is : " + metaDataHeartBeat);
 					lastServerBeat.set(Character.getNumericValue(metaDataHeartBeat.serverName.charAt(1)-1), metaDataHeartBeat.timestamp);
 					updateServerStatuses();
+					updateChunkMetaData(metaDataHeartBeat);
                 }
 				else if (message.split(" ")[0].equals("success")) { // intended for meta server from fileserver
 					// : success " + message.split(" ")[1] + " " + ID +"" + data.length)
@@ -87,7 +88,8 @@ public class MessageHandler extends Thread{
 					int chunkId = Integer.parseInt(offset)/4096 + 1;
 					int chunkOffset = Integer.parseInt(offset)%4096;
 					String chunkName = fileName+ "_" + chunkId;
-					System.out.println("ChunkName "+ chunkName +" Server Selected: " + successfulCreations.get(chunkName));
+					System.out.println("ChunkName " + chunkName + " Server Selected: " + successfulCreations.get(chunkName));
+
 					if(successfulCreations.containsKey(chunkName)){
 						ArrayList<String> chunkServers = successfulCreations.get(chunkName);
 						//todo :validate server available or not
@@ -132,6 +134,9 @@ public class MessageHandler extends Thread{
 					String offset = message.split(" ")[2];
 					String selectedServer = message.split(" ")[3];
 					String currentHostId = resolver.get(InetAddress.getLocalHost().getHostName());
+					System.out.println("chunkname: " + chunkName);
+					System.out.println("offset " + offset);
+					System.out.println("selectedServer: "+ selectedServer);
 					pw = writers.get(sockets.get(selectedServer));
 					pw.println("read "+ chunkName + " " + offset + " " + currentHostId);
 					pw.flush();
@@ -170,12 +175,13 @@ public class MessageHandler extends Thread{
 //					System.out.println("sending read request to "+selectedServer);
 				}
 				else if (message.split(" ")[0].equals("ReadSuccess")) {
+					System.out.println("client receiving data : ");
 					System.out.println(message);
 				}
 				else if (message.split(" ")[0].equals("CreateSuccess")) {
 					System.out.println(message);
 				}
-				System.out.println(message);
+				else System.out.println(message);
 			}
 			// 1. create new file request (this is the request received by client to metadata server)
 			// 2. create new chunk request (this is the request received from metadataserver to fileserver)
@@ -213,5 +219,30 @@ public class MessageHandler extends Thread{
 			}
 		}
 		System.out.println("DownServers: " + downServers);
+	}
+	public static void updateChunkMetaData(MetaDataHeartBeat metaDataHeartBeat) {
+		for (int i = 0; i < metaDataHeartBeat.listOfChunks.size(); i++) {
+			String chunkName = metaDataHeartBeat
+					.listOfChunks.get(i)
+					.filename.toString()
+					.split("/")[
+							metaDataHeartBeat.listOfChunks.get(i)
+									.filename.toString()
+									.split("/").length-1
+					];
+			chunkCreateOrUpdateTime.put(chunkName, metaDataHeartBeat.listOfChunks.get(i).fileSize);
+			if (successfulCreations.containsKey(chunkName)
+					&& !successfulCreations.get(chunkName).contains(metaDataHeartBeat.serverName)
+ 			) {
+				ArrayList<String> tempServers = successfulCreations.get(chunkName);
+				tempServers.add(metaDataHeartBeat.serverName);
+				successfulCreations.put(chunkName, tempServers);
+			}
+			else if(!successfulCreations.containsKey(chunkName)){
+				ArrayList<String> tempServers = new ArrayList<>();
+				tempServers.add(metaDataHeartBeat.serverName);
+				successfulCreations.put(chunkName, tempServers);
+			}
+		}
 	}
 }

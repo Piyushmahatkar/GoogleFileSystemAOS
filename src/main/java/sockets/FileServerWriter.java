@@ -62,14 +62,14 @@ class FileServerWriter extends Thread{
                     BufferedReader br = new BufferedReader(new FileReader(file));
                     br.skip(Integer.parseInt(message.split(" ")[2])-1); // chars to skip
                     String data = br.readLine();
-                    System.out.println("Read Data: " + data);
-                    pw = writers.get(sockets.get(requestingClient));
-                    pw.println("ReadData " + data);
+                    System.out.println("ReadSuccess " + data);
+                    System.out.println("requesting client is : " + requestingClient);
+//                    pw = writers.get(sockets.get(requestingClient));
+                    pw = new PrintWriter(sockets.get(requestingClient).getOutputStream(), true);
+                    pw.println("ReadSuccess " + data);
                     pw.flush();
                 }
-
             }
-
             br.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
