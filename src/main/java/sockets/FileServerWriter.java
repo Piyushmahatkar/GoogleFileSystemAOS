@@ -213,7 +213,7 @@ class FileServerWriter extends Thread{
         if(isAppend) {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String st = br.readLine();
-            int currentVersion = st.split(":")[1]==null? Integer.parseInt(st.split(":")[1]): 0;
+            int currentVersion = st != null? Integer.parseInt(st.split(":")[1]): 0;
 //            int currentVersion =  Integer.parseInt(st.split(":")[1]);
             version = currentVersion + 1;
         }
