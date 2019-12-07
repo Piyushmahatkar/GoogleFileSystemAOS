@@ -117,20 +117,37 @@ public class MessageHandler extends Thread{
 					//if yes
 					String latestChunkName = chunkLocator.get(fileName);//latest chunk
 					if(successfulCreations.containsKey(latestChunkName)){
-						ArrayList<String> chunkServers = successfulCreations.get(latestChunkName);
+						if(validateIsNewChunkRequired(latestChunkName, dataSize)){
+						String oldChunk = chunkLocator.get(fileName);
+						String oldChunkIndex = oldChunk.substring(oldChunk.length() - 1);
+						String newChunk = oldChunk.substring(0, oldChunk.length() - 1)+(Integer.parseInt(oldChunkIndex) + 1);
+						ArrayList<Integer> serversList = generate3Random();
 						//todo :validate server available or not
 						pw = writers.get(sockets.get(clientHostId));
 						pw.println("canAppend "
-								+ latestChunkName + " " +
+								+ newChunk + " " +
 								dataSize + " "
-								+ chunkServers.get(0) + " "
-								+ chunkServers.get(1) + " "
-								+ chunkServers.get(2));
+								+ "S"+serversList.get(0) + " "
+								+ "S"+serversList.get(1) + " "
+								+ "S"+serversList.get(2));
 						pw.flush();
-						System.out.println("canAppend " + latestChunkName+ " " + dataSize + " " + chunkServers);
-					// else
-					//append null to the old chunk
-					// create new chunk name and select new server list
+						System.out.println("canAppend " + latestChunkName+ " " + dataSize + " " + serversList);
+					}else{
+							ArrayList<String> chunkServers = successfulCreations.get(latestChunkName);
+							//todo :validate server available or not
+							pw = writers.get(sockets.get(clientHostId));
+							pw.println("canAppend "
+									+ latestChunkName + " " +
+									dataSize + " "
+									+ chunkServers.get(0) + " "
+									+ chunkServers.get(1) + " "
+									+ chunkServers.get(2));
+							pw.flush();
+							System.out.println("canAppend " + latestChunkName+ " " + dataSize + " " + chunkServers);
+							// else
+							//append null to the old chunk
+							// create new chunk name and select new server list
+						}
 					}
 				}
 
@@ -296,5 +313,13 @@ public class MessageHandler extends Thread{
 		PrintWriter newpr = writers.get(sockets.get(source));
         System.out.println("sending server "+ source + " to recover "+ recoveringServer + " for chunkfile "+ chunkName);
 		newpr.println("SendRecoveryDataToServer "+chunkName+" "+ recoveringServer);
+	}
+
+	public static boolean validateIsNewChunkRequired (String oldChunk, String dataSize) {
+		Long oldChunkSize = chunkCreateOrUpdateTime.get(oldChunk);
+		if(oldChunkSize+Integer.parseInt(dataSize)>4096){
+			return true;
+		}
+		return false;
 	}
 }

@@ -75,9 +75,13 @@ public class Sockets {
                 else if (string[0].equals("append")) {
                     String fileName = string[1];
                     String dataSize = string[2];// this has the filename
-                    PrintWriter pw = writers.get(sockets.get("M"));
-                    pw.println(string[0] +" "+ fileName + " " + dataSize + " " + currentHostId);
-                    pw.flush();
+                    if(Integer.parseInt(dataSize) > 1024){
+                        System.out.println("Invalid Data Size. Please enter size < 1024");
+                    }else {
+                        PrintWriter pw = writers.get(sockets.get("M"));
+                        pw.println(string[0] +" "+ fileName + " " + dataSize + " " + currentHostId);
+                        pw.flush();
+                    }
                 }
                 else {
                     String out = string[0];
