@@ -138,7 +138,7 @@ class FileServerWriter extends Thread{
                     BufferedWriter writer = new BufferedWriter(new FileWriter(file,true));
                     writer.write(generateDataBySize(dataSize));
                     writer.close();
-//                    createUpdateVersionFile(path, true);
+                    createUpdateVersionFile(path, true);
                     System.out.println("Append Successful");
                     pw = writers.get(sockets.get(requestingClient));
                     pw.println("AppendSuccess : " + ID);
@@ -207,17 +207,20 @@ class FileServerWriter extends Thread{
         String versionFilePath = filePath+"_v";
         File file = new File(versionFilePath);
         int version = 0;
-        file.getParentFile().mkdirs();
-        file.createNewFile();
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         if(isAppend) {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String st = br.readLine();
+            br.close();
             int currentVersion = st != null? Integer.parseInt(st.split(":")[1]): 0;
 //            int currentVersion =  Integer.parseInt(st.split(":")[1]);
             version = currentVersion + 1;
+            System.out.println("version was : " + currentVersion);
         }
-        writer.write("Version:"+version);
-        writer.close();
+        System.out.println("version updated to :" + version);
+        if (file.exists() && file.isFile()) {
+            file.delete();
+        }
+        file.createNewFile();
+        writeUsingFiles("Version:"+version, versionFilePath);
     }
 }

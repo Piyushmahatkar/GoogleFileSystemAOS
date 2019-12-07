@@ -57,6 +57,7 @@ public class MessageHandler extends Thread{
 					MetaDataHeartBeat metaDataHeartBeat = gson.fromJson( message.split(" ")[1], MetaDataHeartBeat.class);
 					lastServerBeat.set(Character.getNumericValue(metaDataHeartBeat.serverName.charAt(1)-1), metaDataHeartBeat.timestamp);
                     System.out.println("Recieved Heartbeat Message from "+ metaDataHeartBeat.serverName);
+                    updateSuccessfulCreations(metaDataHeartBeat);
 					updateServerStatuses();
 					updateChunkMetaData(metaDataHeartBeat);
 					System.out.println("downServers" + downServers);
@@ -202,6 +203,31 @@ public class MessageHandler extends Thread{
 		}
 		return list;
 	}
+
+    public static void updateSuccessfulCreations(MetaDataHeartBeat metaDataHeartBeat) {
+	    for(int i=0;i<metaDataHeartBeat.listOfChunks.size();i++) {
+	        String chunkName = metaDataHeartBeat.listOfChunks.get(i).filename.toString();
+            if (successfulCreations.containsKey(chunkName)) {
+                ArrayList<String> tempServers = successfulCreations.get(chunkName);
+                tempServers.add(metaDataHeartBeat.serverName);
+                successfulCreations.put(chunkName, tempServers);
+                if (successfulCreations.get(chunkName).size() >= 3) { // all 3 servers requests were received
+                    chunkLocator.put(chunkName.split("_")[0], chunkName);
+                    serverLocator.put(metaDataHeartBeat.serverName, successfulCreations.get(chunkName));
+                    //send success to client
+                    PrintWriter pw = writers.get(sockets.get("M"));
+                    pw.println("Recovery done for "+ chunkName + "and Server : " + metaDataHeartBeat.serverName);
+                    pw.flush();
+                }
+                else {
+                    ArrayList<String> tempServer = new ArrayList<>();
+                    tempServers.add(metaDataHeartBeat.serverName);
+                    successfulCreations.put(chunkName, tempServer);
+                }
+            }
+	    }
+	}
+
 	public static void updateServerStatuses(){
 		for (int i=0;i<lastServerBeat.size();i++) {
 			if(System.currentTimeMillis() - lastServerBeat.get(i) > 15000 && !downServers.contains(i)) {

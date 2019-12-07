@@ -127,8 +127,8 @@ public class Sockets {
                         nodeList.add("S"+i);
                     }
                     nodeList.add("M");
-//                    nodeList.add("C1");
-//                    nodeList.add("C2");
+                    nodeList.add("C1");
+                    nodeList.add("C2");
                     for (String node : nodeList) {
                         System.out.println(node);
                         connectNode(IDToIPResolver.get(node));
