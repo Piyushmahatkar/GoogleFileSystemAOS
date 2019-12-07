@@ -118,6 +118,23 @@ public class Sockets {
                     }
                     HeartbeatSender heartbeat = new HeartbeatSender();
                 }
+                else if(string[0].equals("connectBack")){
+                    int serverIndex = Integer.parseInt(ID.split("S")[1]);
+                    System.out.println(serverIndex);
+                    List<String> nodeList = new ArrayList<>();
+                    for (int i = 1; i < 6; i++){
+                        if(i != serverIndex)
+                        nodeList.add("S"+i);
+                    }
+                    nodeList.add("M");
+//                    nodeList.add("C1");
+//                    nodeList.add("C2");
+                    for (String node : nodeList) {
+                        System.out.println(node);
+                        connectNode(IDToIPResolver.get(node));
+                    }
+                    HeartbeatSender heartbeat = new HeartbeatSender();
+                }
                 // string format : <command> <node id> <data>
                 else {
                     // file server code
@@ -134,7 +151,7 @@ public class Sockets {
             ServerSocket SS = new ServerSocket(port);
             Listener listener = new Listener(SS);
             for(int i=0;i<5;i++) {
-                lastServerBeat.add(System.currentTimeMillis());
+                lastServerBeat.add(System.currentTimeMillis()-15000);
             }
             Scanner input = new Scanner(System.in);
             //TODO: code for meta server goes here

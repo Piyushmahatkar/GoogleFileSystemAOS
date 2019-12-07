@@ -71,7 +71,7 @@ class FileServerWriter extends Thread{
                     String path = "./"
                             + "aos/project3"
                             + File.separator
-                            + resolver.get(InetAddress.getLocalHost().getHostName())//ID
+                            + resolver.get(InetAddress.getLocalHost().getHostName()) //ID
                             + File.separator
                             + message.split(" ")[1];
                     File file = new File(path);
@@ -219,6 +219,5 @@ class FileServerWriter extends Thread{
         }
         writer.write("Version:"+version);
         writer.close();
-
     }
 }

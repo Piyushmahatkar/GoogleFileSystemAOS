@@ -56,7 +56,8 @@ public class HeartbeatSender extends Thread {
                         BasicFileAttributes view = Files.getFileAttributeView(p, BasicFileAttributeView.class).readAttributes();
                         FileTime fileTime = view.creationTime();
                         Long fileSize = view.size();
-                        listOfFiles.add(new ChunkDetails(filepath, fileTime.toMillis(), fileSize));
+                        if(!filepath.toString().contains("_v"))
+                            listOfFiles.add(new ChunkDetails(filepath, fileTime.toMillis(), fileSize));
                     }
                 }
                 MetaDataHeartBeat metaDataHeartBeat = new MetaDataHeartBeat(

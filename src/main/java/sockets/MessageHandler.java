@@ -52,13 +52,14 @@ public class MessageHandler extends Thread{
 					}
 				}
 				else if (message.split(" ")[0].equals("Heartbeat")) {
-                    System.out.println("Recieved Heartbeat Message :" + message);
+
                     Gson gson = new Gson();
 					MetaDataHeartBeat metaDataHeartBeat = gson.fromJson( message.split(" ")[1], MetaDataHeartBeat.class);
-					 System.out.println("metadataobject is : " + metaDataHeartBeat);
 					lastServerBeat.set(Character.getNumericValue(metaDataHeartBeat.serverName.charAt(1)-1), metaDataHeartBeat.timestamp);
+                    System.out.println("Recieved Heartbeat Message from "+ metaDataHeartBeat.serverName);
 					updateServerStatuses();
 					updateChunkMetaData(metaDataHeartBeat);
+					System.out.println("downServers" + downServers);
                 }
 				else if (message.split(" ")[0].equals("success")) { // intended for meta server from fileserver
 					// : success " + message.split(" ")[1] + " " + ID +"" + data.length)
@@ -210,32 +211,35 @@ public class MessageHandler extends Thread{
 			else if(System.currentTimeMillis() - lastServerBeat.get(i) < 15000 && downServers.contains(i)) {
 				// server is back online, recovery procedure starts.
 				for(String entry : successfulCreations.keySet()) { // has chunk vs servers mapping
-					if(successfulCreations.get(entry).contains("S"+i)) {
+				    // i is the recovered server
+                    int recoveredServer = i+1;
+					if(successfulCreations.get(entry).contains("S"+recoveredServer)) {
 						RecoveryInfo recoveryInfo = new RecoveryInfo();
-						recoveryInfo.recoveringServer = "S"+i;
+						recoveryInfo.recoveringServer = "S"+recoveredServer;
 						recoveryInfo.chunkName = entry;
-						for(int j=0; j<successfulCreations.get(entry).size();j++) {
-							if(!successfulCreations.get(entry).get(i).equals("S"+i))
-								recoveryInfo.recoveringSources.add(successfulCreations.get(entry).get(i));
+						for(int j=0; j<successfulCreations.get(recoveryInfo.chunkName).size();j++) {
+//							System.out.println("finding if chunk " + entry+" was updated on server S" + recoveredServer);
+                            System.out.println(successfulCreations);
+                            // todo: can be optimized with checking version number here itself
+							if(!successfulCreations.get(entry).get(j).equals("S"+recoveredServer)) {
+                                recoveryInfo.recoveringSources.add(successfulCreations.get(entry).get(j));
+                            }
 						}
 						// get latest version
-						int latestVersion = chunkVersion.get(recoveryInfo.chunkName);
 						// check if cohort server is active
 						for (String source:recoveryInfo.recoveringSources) {
-							if(downServers.contains(source))
-								// send signal to cohort to send file content.
-								sendCopyRequestForThisChunk(recoveryInfo.recoveringServer, source, recoveryInfo.chunkName);
-
+							if(!downServers.contains(source)) {
+                                // send signal to cohort to send file content.
+                                sendCopyRequestForThisChunk(recoveryInfo.recoveringServer, source, recoveryInfo.chunkName);
+                                break;
+                            }
 						}
 
 					}
 				}
-
-//				successfulCreations.
 				downServers.remove(new Integer(i));
 			}
 		}
-//		System.out.println("DownServers: " + downServers);
 	}
 	public static void updateChunkMetaData(MetaDataHeartBeat metaDataHeartBeat) {
 		for (int i = 0; i < metaDataHeartBeat.listOfChunks.size(); i++) {
@@ -264,6 +268,7 @@ public class MessageHandler extends Thread{
 
 	public static void sendCopyRequestForThisChunk(String recoveringServer, String source, String chunkName) {
 		PrintWriter newpr = writers.get(sockets.get(source));
+        System.out.println("sending server "+ source + " to recover "+ recoveringServer + " for chunkfile "+ chunkName);
 		newpr.println("SendRecoveryDataToServer "+chunkName+" "+ recoveringServer);
 	}
 }
