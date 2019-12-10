@@ -131,8 +131,8 @@ public class Sockets {
                         nodeList.add("S"+i);
                     }
                     nodeList.add("M");
-                    nodeList.add("C1");
-                    nodeList.add("C2");
+//                    nodeList.add("C1");
+//                    nodeList.add("C2");
                     for (String node : nodeList) {
                         System.out.println(node);
                         connectNode(IDToIPResolver.get(node));
@@ -235,7 +235,7 @@ public class Sockets {
     }
 
     public static void initializeSockets() {
-        port = 9001;
+        port = 9000;
         resolver.put("dc01.utdallas.edu", "S1");
         resolver.put("dc02.utdallas.edu", "S2");
         resolver.put("dc03.utdallas.edu", "S3");

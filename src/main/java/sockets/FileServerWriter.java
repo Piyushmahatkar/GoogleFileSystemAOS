@@ -75,10 +75,13 @@ class FileServerWriter extends Thread{
                             + File.separator
                             + message.split(" ")[1];
                     File file = new File(path);
+                    File vfile = new File(path+"_v");
                     BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                    BufferedReader versionBufferedReader = new BufferedReader(new FileReader(vfile));
                     String data = bufferedReader.readLine();
+                    String vdata =  versionBufferedReader.readLine();
                     PrintWriter pr = writers.get(sockets.get(message.split(" ")[2]));
-                    pr.println("recoveringFile "+message.split(" ")[1]+" "+data);
+                    pr.println("recoveringFile "+message.split(" ")[1]+" "+data+" "+vdata);
                     pr.flush();
 
                 } else if(message.split(" ")[0].equals("recoveringFile")) {
@@ -94,6 +97,13 @@ class FileServerWriter extends Thread{
                     }
                     file.createNewFile();
                     writeUsingFiles(message.split(" ")[2], path);
+                    // versionfile
+                    File vfile = new File(path+"_v");
+                    if (vfile.exists() && vfile.isFile()) {
+                        vfile.delete();
+                    }
+                    vfile.createNewFile();
+                    writeUsingFiles(message.split(" ")[3], path+"_v");
                 }
                 //todo: Implement 2PHASE COMMIT PROTOCOL
                 else if(message.split(" ")[0].equals("append.") ) { // appending of chunk
