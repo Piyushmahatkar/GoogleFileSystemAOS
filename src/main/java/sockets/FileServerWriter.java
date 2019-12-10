@@ -120,6 +120,7 @@ class FileServerWriter extends Thread{
                     System.out.println("Append Request Recieved");
                     int dataSize = Integer.parseInt(message.split(" ")[2]);
                     String requestingClient =  message.split(" ")[3];
+                    System.out.println("requestingClient: "+ requestingClient);
                     String path = "./"
                             + "aos/project3"
                             + File.separator
@@ -138,14 +139,14 @@ class FileServerWriter extends Thread{
                     BufferedWriter writer = new BufferedWriter(new FileWriter(file,true));
                     writer.write(generateDataBySize(dataSize));
                     writer.close();
-                    if(message.split(" ").length == 5)
+//                    if(message.split(" ").length == 5)
                         createUpdateVersionFile(path, true);
-                    else
-                        createUpdateVersionFile(path, false);
+//                    else
+//                        createUpdateVersionFile(path, false);
                     System.out.println("Append Successful");
-//                    pw = writers.get(sockets.get(requestingClient));
-//                    pw.println("AppendSuccess : " + ID);
-//                    pw.flush();
+                    pw = writers.get(sockets.get(requestingClient));
+                    pw.println("AppendSuccess : " + ID);
+                    pw.flush();
                 }
                 else if (message.split(" ")[0].equals("ReadSuccess")) {
                     System.out.println(message);
@@ -208,22 +209,26 @@ class FileServerWriter extends Thread{
 
     public static void createUpdateVersionFile (String filePath, Boolean isAppend) throws IOException {
         String versionFilePath = filePath+"_v";
+        System.out.println(versionFilePath);
         File file = new File(versionFilePath);
         int version = 0;
         if(isAppend) {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String st = br.readLine();
-            br.close();
+            String st = null;
+            if(file.exists() && file.isFile()){
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                st = br.readLine();
+                br.close();
+            }
             int currentVersion = st != null? Integer.parseInt(st.split(":")[1]): 0;
 //            int currentVersion =  Integer.parseInt(st.split(":")[1]);
             version = currentVersion + 1;
             System.out.println("version was : " + currentVersion);
         }
-        System.out.println("version updated to :" + version);
         if (file.exists() && file.isFile()) {
             file.delete();
         }
         file.createNewFile();
+        System.out.println("version updated to :" + version);
         writeUsingFiles("Version:"+version, versionFilePath);
     }
 }

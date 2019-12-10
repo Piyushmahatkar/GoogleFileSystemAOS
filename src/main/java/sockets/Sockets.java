@@ -235,7 +235,7 @@ public class Sockets {
     }
 
     public static void initializeSockets() {
-        port = 5001;
+        port = 9001;
         resolver.put("dc01.utdallas.edu", "S1");
         resolver.put("dc02.utdallas.edu", "S2");
         resolver.put("dc03.utdallas.edu", "S3");
