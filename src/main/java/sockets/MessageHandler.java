@@ -205,6 +205,10 @@ public class MessageHandler extends Thread{
 				else if (message.split(" ")[0].equals("CreateSuccess")) {
 					System.out.println(message);
 				}
+				else if(message.split(" ")[0].equals("serverOnline")) {
+					System.out.println("connecting to "+ message.split(" ")[1]);
+					connectNode(IDToIPResolver.get(message.split(" ")[1]));
+				}
 //				System.out.println(message);
 			}
 		}
@@ -260,6 +264,8 @@ public class MessageHandler extends Thread{
 				for(String entry : successfulCreations.keySet()) { // has chunk vs servers mapping
 				    // i is the recovered server
                     int recoveredServer = i+1;
+					// send notification to clients that the server is online
+					notifyClientServerIsOnline("S"+recoveredServer);
 					if(successfulCreations.get(entry).contains("S"+recoveredServer)) {
 						RecoveryInfo recoveryInfo = new RecoveryInfo();
 						recoveryInfo.recoveringServer = "S"+recoveredServer;
@@ -325,5 +331,15 @@ public class MessageHandler extends Thread{
 			return true;
 		}
 		return false;
+	}
+
+	public static void notifyClientServerIsOnline(String recoveringServer) {
+		PrintWriter newPW = writers.get(sockets.get("C1"));
+		newPW.println("serverOnline " + recoveringServer); //
+		newPW.flush();
+		newPW = writers.get(sockets.get("C2"));
+		newPW.println("serverOnline " + recoveringServer); //
+		newPW.flush();
+		System.out.println("sending server Online");
 	}
 }
