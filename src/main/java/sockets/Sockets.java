@@ -24,7 +24,7 @@ public class Sockets {
     static volatile Map<String, Integer> chunkVersion = new HashMap<>(); // chunk vs its latest version
 
     static volatile ArrayList<FileServerBuffer> appendBuffer= new ArrayList<>(3);
-    static String ID;
+    static volatile String ID;
     static String path;
     static int port;
 
@@ -235,7 +235,7 @@ public class Sockets {
     }
 
     public static void initializeSockets() {
-        port = 5000;
+        port = 5001;
         resolver.put("dc01.utdallas.edu", "S1");
         resolver.put("dc02.utdallas.edu", "S2");
         resolver.put("dc03.utdallas.edu", "S3");

@@ -138,11 +138,14 @@ class FileServerWriter extends Thread{
                     BufferedWriter writer = new BufferedWriter(new FileWriter(file,true));
                     writer.write(generateDataBySize(dataSize));
                     writer.close();
-                    createUpdateVersionFile(path, true);
+                    if(message.split(" ").length == 5)
+                        createUpdateVersionFile(path, true);
+                    else
+                        createUpdateVersionFile(path, false);
                     System.out.println("Append Successful");
-                    pw = writers.get(sockets.get(requestingClient));
-                    pw.println("AppendSuccess : " + ID);
-                    pw.flush();
+//                    pw = writers.get(sockets.get(requestingClient));
+//                    pw.println("AppendSuccess : " + ID);
+//                    pw.flush();
                 }
                 else if (message.split(" ")[0].equals("ReadSuccess")) {
                     System.out.println(message);

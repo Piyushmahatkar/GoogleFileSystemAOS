@@ -180,7 +180,7 @@ public class MessageHandler extends Thread{
 					//send commit request
 					for(int i = 0; i < 3 ; i++) {
 						pw = writers.get(sockets.get(serversList.get(i)));
-						pw.println("append " + latestChunkName + " " + dataSize + " " + currentHostId); //
+						pw.println("append " + latestChunkName + " " + dataSize + " " + currentHostId + "newChunkVersionNeeded"); //
 						pw.flush();
 						System.out.println("sending Append request to "+serversList.get(i));
 					}
